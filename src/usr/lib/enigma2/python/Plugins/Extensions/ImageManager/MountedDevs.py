@@ -8,8 +8,11 @@ def getMountedDevs(aaa):
         for b in a.readlines():
             DevList = b.strip('\n').replace('\\040', ' ')
             if DevList.find("vfat") > -1:
-                NAME = DevList[DevList.find('LABEL="')+7:]
-                NAME = NAME[:NAME.find('"')]
+                if DevList.find('LABEL') > -1:
+                    NAME = DevList[DevList.find('LABEL="')+7:]
+                    NAME = NAME[:NAME.find('"')]
+                else:
+                    NAME = 'noNAME'
                 SDXY = DevList.split(":",1)[0]
                 mountedDevs.append((NAME+' '+SDXY, NAME+' ( '+SDXY+' )'))
         a.close()

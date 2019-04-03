@@ -63,10 +63,10 @@ skin_sd_filelist = """
     <widget name="filelist" position="10,10" size="530,380" foregroundColor="#0000FF80" scrollbarMode="showOnDemand"/>
   </screen>"""
 
-pluginversion = '2.0'
+pluginversion = '2.1'
 screenWidth = getDesktop(0).size().width()
 config.plugins.ImageManager = ConfigSubsection()
-config.plugins.ImageManager.startmode = ConfigSelection(default='backup', choices=[('mboot', _('Multiboot')),
+config.plugins.ImageManager.startmode = ConfigSelection(default='mboot', choices=[('mboot', _('Multiboot')),
  ('backup', _('Backup')),
  ('copy', _('Copying')),
  ('rename', _('Rename')),
@@ -83,7 +83,6 @@ config.plugins.ImageManager.mode = ConfigSelection(choices=[('mboot', _('Multibo
 
 class ImageManager(ConfigListScreen, Screen):
     def __init__(self, session):
-        self.session = session
         Screen.__init__(self, session)
         if screenWidth and screenWidth == 1920:
             self.skin = skin_fhd_main
@@ -92,7 +91,7 @@ class ImageManager(ConfigListScreen, Screen):
         else:
             self.skin = skin_sd_main
         config.plugins.ImageManager.mode.value = config.plugins.ImageManager.startmode.value
-        config.plugins.ImageManager.newName = ConfigText(visible_width=16, fixed_size=True) 
+        config.plugins.ImageManager.newName = ConfigText(visible_width=16, fixed_size=True)
         config.plugins.ImageManager.imagetype = ConfigSelection(default=_('no'), choices=[('YES', _('yes')), ('NO', _('no'))])
         config.plugins.ImageManager.archivetype = ConfigSelection(default='IMG', choices=[('IMG', 'IMG'),
          ('TAR', 'TAR'), ('TARGZ', 'TAR.GZ')])
@@ -109,7 +108,7 @@ class ImageManager(ConfigListScreen, Screen):
          'power': self.reboot_spark,
          'cancel': self.close}, -2)
         self.list = [ ]
-        ConfigListScreen.__init__(self, self.list)
+        ConfigListScreen.__init__(self, self.list, session=session)
         self.createConfigList()
 
     def createConfigList(self):
@@ -142,7 +141,6 @@ class ImageManager(ConfigListScreen, Screen):
             config.plugins.ImageManager.newName.value = 'NewNamePartition'
             self.list.append(getConfigListEntry(_('Select the partition to rename:'), config.plugins.ImageManager.devsToCopy))
             self.list.append(getConfigListEntry(_('Input name:'), config.plugins.ImageManager.newName))
-        self["config"].list = self.list
         self["config"].setList(self.list)
 
     def newConfig(self):
@@ -169,14 +167,14 @@ class ImageManager(ConfigListScreen, Screen):
         elif config.plugins.ImageManager.mode.value == 'copy':
             self.copying()
         elif config.plugins.ImageManager.mode.value == 'install':
-            self.session.openWithCallback(self.newList, Install_IM)
+            self.session.openWithCallback(self.createConfigList, Install_IM)
         elif config.plugins.ImageManager.mode.value == 'rename':
             renamepart = config.plugins.ImageManager.devsToCopy.value[config.plugins.ImageManager.devsToCopy.value.find('/dev/'):]
             system("umount -l %s" % (renamepart))
             system("tune2fs -L %s %s" % (config.plugins.ImageManager.newName.value, renamepart))
             MountedDevs.Refresh()
-            newname = _('Partition  %s\n renamed in %s') % (renamepart, config.plugins.ImageManager.newName.value)
-            self.session.open(MessageBox, newname, type=MessageBox.TYPE_INFO, timeout=5) 
+            newname = _('Partition %s\nrenamed in %s') % (renamepart, config.plugins.ImageManager.newName.value)
+            self.session.open(MessageBox, newname, type=MessageBox.TYPE_INFO, timeout=5)
             self.createConfigList()
         elif config.plugins.ImageManager.mode.value == 'cfgmenu':
             config.plugins.ImageManager.startmode.save()
@@ -189,11 +187,7 @@ class ImageManager(ConfigListScreen, Screen):
             plugins.reloadPlugins()
         else:
             self.close()
-    
-    def newList(self):        
-        MountedDevs.Refresh()
-        self.createConfigList()
-        
+
     def copying(self):
         self.makeCopy = self.BIN + 'copying.sh'
         self.makeCopy += ' %s %s %s %s' % (config.plugins.ImageManager.devsFrom.value,
@@ -291,13 +285,13 @@ class Install_IM(Screen):
             namepart = self["filelist"].getCurrentDirectory()[:self["filelist"].getCurrentDirectory().rfind('/')]
             namepart = namepart[namepart.rfind('/') + 1:]
             self.script += ' %s %s %s %s' % (target, self['filelist'].getCurrentDirectory(), self['filelist'].getFilename(), namepart)
-            message1 = _('Do you want to %s with this image?\n%s\nto partition %s') % (config.plugins.ImageManager.mode.value, self['filelist'].getCurrentDirectory() + self['filelist'].getFilename(), target)
+            message1 = _('Do you want to install with this image?\n%s\nto partition %s') % (self['filelist'].getCurrentDirectory() + self['filelist'].getFilename(), target)
             self.session.openWithCallback(self.Execution, MessageBox, message1, timeout=0, default=True)
 
     def Execution(self, answer):
         if answer:
             self.session.openWithCallback(self.cancel, Console, self.title, ['%s' % self.script])
-            
+
     def cancel(self):
         MountedDevs.Refresh()
         self.close()
