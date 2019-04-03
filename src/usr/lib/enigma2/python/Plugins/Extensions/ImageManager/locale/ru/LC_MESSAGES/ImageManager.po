@@ -1,0 +1,110 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: ImageManager\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-11-07 01:13+0100\n"
+"PO-Revision-Date: 2015-11-30 09:30+0100\n"
+"Last-Translator: Vasiliks <vasiliks@narod.ru>\n"
+"Language-Team: Vasiliks\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"Language: ru_RU\n"
+"X-Generator: Poedit 1.7.4\n"
+
+msgid "Image Manager"
+msgstr "Менеджер имиджей"
+
+msgid "Backup Creator"
+msgstr "Создание бэкапа"
+
+msgid "Copying of partition"
+msgstr "Копирование раздела"
+
+msgid "Image Installer"
+msgstr "Установщик имиджей"
+
+msgid "Select the source partition:"
+msgstr "Выберите раздел-источник:"
+
+msgid "Select the target partition:"
+msgstr "Выберите целевой раздел:"
+
+msgid "Delete the configuration file Enigma?"
+msgstr "Удалить файл настроек Enigma?"
+
+msgid "Remove config settings EMU?"
+msgstr "Удалить настройки конфигов EMU?"
+
+msgid "Select the type of archive:"
+msgstr "Выберите тип создаваемого архива:"
+
+msgid "manage of your image Enigma"
+msgstr "управление вашим имиджем Enigma"
+
+msgid "Do you want to reboot with the new partition?"
+msgstr "Вы хотите перезагрузиться с нового раздела?"
+
+msgid ""
+"Do you want to %s with this image?\n"
+"%s\n"
+"to partition %s"
+msgstr ""
+"Вы хотите %s данный имидж?\n"
+"%s\n"
+"на раздел %s"
+
+msgid "Active Partition  -  "
+msgstr "Активный раздел  -  "
+
+msgid "Image Manager ver %s (c)Vasiliks"
+msgstr "Менеджер имиджей вер %s (c)Vasiliks"
+
+msgid "Select the image"
+msgstr "Выберите имидж"
+
+msgid "Reboot to Spark"
+msgstr "Перезагрузка в Spark"
+
+msgid "Show ImageManager in ExtensionsMenu?"
+msgstr "Показывать  Менеджер имиджей в меню расширений?"
+
+msgid "Show Reboot to Spark in ExtensionsMenu?"
+msgstr "Показывать Перезагрузка в Spark в меню расширений?"
+
+msgid "Show Reboot to Spark in ShutdownMenu?"
+msgstr "Показывать Перезагрузка в Spark в меню выключение?"
+
+msgid "Configuration is saved"
+msgstr "Конфигурация сохранена"
+
+msgid "Execute"
+msgstr "Выполнить"
+
+msgid "Configuration"
+msgstr "Конфигурация"
+
+msgid "Backup"
+msgstr "Бекап"
+
+msgid "Installing"
+msgstr "Установка"
+
+msgid "Copying"
+msgstr "Копирование"
+
+msgid "Multiboot"
+msgstr "Мультизагрузка"
+
+msgid "Select Mode:"
+msgstr "Выберите режим:"
+
+msgid "Mode at startup:"
+msgstr "Режим при запуске:"
+
+msgid "Input name:"
+msgstr "Введите имя:"
+
+msgid "Select the partition to rename:"
+msgstr "Введите раздел для переименования:"
