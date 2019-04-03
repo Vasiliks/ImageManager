@@ -1,4 +1,3 @@
-from Tools.Directories import fileExists
 from Components.config import config, ConfigSelection
 from os import popen
 
@@ -57,8 +56,31 @@ def Activepart():
         a = _("NAND-Flash")
     return a
 
-def Refresh():
-    popen('echo 3 > /proc/sys/vm/drop_caches && blkid > /tmp/blkid.im')
-    config.plugins.ImageManager.devsFrom = ConfigSelection(choices=getMountedDevs(6))
-    config.plugins.ImageManager.devsToBackup = ConfigSelection(choices=getMountedDevs(5))
-    config.plugins.ImageManager.devsToCopy = ConfigSelection(choices=getMountedDevs(4))
+def Refresh(mode):
+    popen('echo 3 > /proc/sys/vm/drop_caches && blkid > /tmp/blkid.tmp')
+    if mode == 'check':
+        no_hdd=True
+        items=open("/tmp/blkid.tmp", "r")
+        for item in items.readlines():
+            if item.__contains__('TYPE="ext') or item.__contains__('TYPE="vfat'):
+                no_hdd=False
+                break
+        items.close()
+        return no_hdd
+    elif mode == 'job':
+        f_out = open('/tmp/blkid.im', "w")
+        f_in = open('/tmp/blkid.tmp', "r")
+        blkid_tmp = f_in.readlines()
+        f_in.close()
+        for sd in 'a', 'b':
+            for i in xrange(1, 15):
+                for j in blkid_tmp:
+                    if j.__contains__('sd%s%d:' % (sd, i)):
+                        blkid_tmp.remove(j)
+                        p = j[j.find('UUID="'):]
+                        j = j.replace(p[:p.find(' ')+1], '')
+                        f_out.write(j)
+        f_out.close()
+        config.plugins.ImageManager.devsFrom = ConfigSelection(choices=getMountedDevs(6))
+        config.plugins.ImageManager.devsToBackup = ConfigSelection(choices=getMountedDevs(5))
+        config.plugins.ImageManager.devsToCopy = ConfigSelection(choices=getMountedDevs(4))

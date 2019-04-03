@@ -13,7 +13,6 @@ from Components.Sources.StaticText import StaticText
 from Plugins.Plugin import PluginDescriptor
 from Tools.Directories import fileExists, pathExists, resolveFilename, SCOPE_PLUGINS, SCOPE_LANGUAGE, SCOPE_MEDIA
 from enigma import getDesktop, quitMainloop
-#from os import popen
 from os import popen
 from MountedDevs import Refresh, Activepart
 
@@ -62,9 +61,13 @@ skin_hd_filelist = """
 skin_sd_filelist = """
   <screen position="center,center" size="550,400">
     <widget name="filelist" position="10,10" size="530,380" foregroundColor="#0000FF80" scrollbarMode="showOnDemand"/>
-  </screen>"""
-
-pluginversion = '2.3' 
+  </screen>""" 
+  
+f = open('/proc/stb/info/model', 'r')
+model = f.readline().strip()
+f.close()
+BIN = '/usr/lib/enigma2/python/Plugins/Extensions/ImageManager/bin/'
+pluginversion = '2.4' 
 screenWidth = getDesktop(0).size().width()
 config.plugins.ImageManager = ConfigSubsection()
 config.plugins.ImageManager.startmode = ConfigSelection(default='mboot', choices=[('mboot', _('Multiboot')),
@@ -100,8 +103,7 @@ class ImageManager(ConfigListScreen, Screen):
          ('WM', 'Wicardd, MgCamd'), ('WO', 'Wicardd, Oscam'),
          ('MO', 'MgCamd, Oscam'), ('O', 'Oscam'),
          ('W', 'Wicardd'), ('M', 'MgCamd'), ('XXX', _('no'))]) 
-        Refresh()
-        self.BIN = '/usr/lib/enigma2/python/Plugins/Extensions/ImageManager/bin/'
+        Refresh('job')
         self["Title"] = StaticText(_('Image Manager ver %s (c)Vasiliks') % pluginversion)
         self['key_ok'] = Label(_('Execute'))
         self['activepart'] = Label(_('Active Partition  -  ') + Activepart())
@@ -160,7 +162,7 @@ class ImageManager(ConfigListScreen, Screen):
             devBoot = config.plugins.ImageManager.devsFrom.value[config.plugins.ImageManager.devsFrom.value.find('/dev/'):]
             self.reBootAll(devBoot)
         elif config.plugins.ImageManager.mode.value == 'backup':
-            self.makeBackup = self.BIN + 'backup.sh'
+            self.makeBackup = BIN + 'backup.sh'
             self.makeBackup += ' %s %s %s %s %s' % (config.plugins.ImageManager.devsFrom.value, config.plugins.ImageManager.devsToBackup.value,
              config.plugins.ImageManager.archivetype.value, config.plugins.ImageManager.imagetype.value, config.plugins.ImageManager.emu.value)
             self.session.open(Console, _('Backup Creator'), ['%s' % self.makeBackup])
@@ -172,7 +174,7 @@ class ImageManager(ConfigListScreen, Screen):
             renamepart = config.plugins.ImageManager.devsToCopy.value[config.plugins.ImageManager.devsToCopy.value.find('/dev/'):]
             popen("umount -l %s" % (renamepart))
             popen("tune2fs -L %s %s" % (config.plugins.ImageManager.newName.value, renamepart))
-            Refresh()
+            Refresh('job')
             newname = _('Partition %s\nrenamed in %s') % (renamepart, config.plugins.ImageManager.newName.value)
             self.session.open(MessageBox, newname, type=MessageBox.TYPE_INFO, timeout=5)
             self.createConfigList()
@@ -189,11 +191,11 @@ class ImageManager(ConfigListScreen, Screen):
             self.close()
         
     def cancel(self):
-        popen('rm /tmp/blkid.im')
+        popen('rm /tmp/blkid.*')
         self.close()
         
     def copying(self):
-        self.makeCopy = self.BIN + 'copying.sh'
+        self.makeCopy = BIN + 'copying.sh'
         self.makeCopy += ' %s %s %s %s' % (config.plugins.ImageManager.devsFrom.value,
          config.plugins.ImageManager.devsToCopy.value,
          config.plugins.ImageManager.imagetype.value,
@@ -201,30 +203,27 @@ class ImageManager(ConfigListScreen, Screen):
         self.session.openWithCallback(self.end_copy, Console, _('Copying of partition'), ['%s' % self.makeCopy])
 
     def end_copy(self):     
-        Refresh()
+        Refresh('job')
         self.createConfigList()
 
     def reboot_spark(self):
         self.reBootAll('SPARK')
 
     def reBootAll(self, devBoot):
-        f = open('/proc/stb/info/model', 'r')
-        b = f.readline().strip()
-        f.close()
-        if b == 'spark':
-            self.MBoot = self.BIN + 'setIMG.sh'
-        elif b == 'spark7162':
-            self.MBoot = self.BIN + 'setIMG7162.sh'
+        print 'ImageManager fuond - ', model
+        if model == 'spark':
+            MBoot = BIN + 'setIMG.sh'
+        elif model == 'spark7162':
+            MBoot = BIN + 'setIMG7162.sh'
         else:
-            self.session.open(MessageBox, 'Unknown box :(', type=MessageBox.TYPE_INFO, timeout=5)
             return
         self.session.nav.stopService()
-        self.param = ' NAND'
+        parametr = ' NAND'
         if devBoot == 'SPARK':
-            self.param = ' SPARK'
+            parametr = ' SPARK'
         elif devBoot != '/dev/mtdblock6':
-            self.param = ' USB ' + devBoot
-        popen(self.MBoot + self.param)
+            parametr = ' USB ' + devBoot
+        popen(MBoot + parametr)
         if fileExists('/tmp/mboot.log'):
             file = open('/tmp/mboot.log', 'r')
             lines = file.readlines()
@@ -275,24 +274,29 @@ class Install_IM(Screen):
             self['filelist'].descent()
         elif self['filelist'].getFilename() != None:
             self.title = _('Image Installer')
-            self.script = '/usr/lib/enigma2/python/Plugins/Extensions/ImageManager/bin/install.sh'
             target = config.plugins.ImageManager.devsToCopy.value[config.plugins.ImageManager.devsToCopy.value.find('/dev/'):]
             namepart = self["filelist"].getCurrentDirectory()[:self["filelist"].getCurrentDirectory().rfind('/')]
-            namepart = namepart[namepart.rfind('/') + 1:]
+            namepart = namepart[namepart.rfind('/') + 1:] 
+            self.script = BIN + 'install.sh'
             self.script += ' %s %s %s %s' % (target, self['filelist'].getCurrentDirectory(), self['filelist'].getFilename(), namepart)
-            message1 = _('Do you want to install with this image?\n%s\nto partition %s') % (self['filelist'].getCurrentDirectory() + self['filelist'].getFilename(), target)
-            self.session.openWithCallback(self.Execution, MessageBox, message1, timeout=0, default=True)
+            message = _('Do you want to install with this image?\n%s\nto partition %s') % (self['filelist'].getCurrentDirectory() + self['filelist'].getFilename(), target)
+            self.session.openWithCallback(self.Execution, MessageBox, message, timeout=0, default=True)
 
     def Execution(self, answer):
         if answer:
             self.session.openWithCallback(self.cancel, Console, self.title, ['%s' % self.script])
 
     def cancel(self):
-        Refresh()
+        Refresh('job')
         self.close()
 
 def start(session, **kwargs):
-    session.open(ImageManager)
+    if model != 'spark' and model != 'spark7162':
+        session.open(MessageBox, _('Unknown box! :( :( :('), type=MessageBox.TYPE_INFO, timeout=30)
+    elif Refresh('check'):
+        session.open(MessageBox, _('Not found HDD or USB-Flash! :( :( :('), type=MessageBox.TYPE_INFO, timeout=30)
+    else:
+        session.open(ImageManager)
 
 def spark(session, **kwargs):
     SparkReboot = ImageManager(session)
