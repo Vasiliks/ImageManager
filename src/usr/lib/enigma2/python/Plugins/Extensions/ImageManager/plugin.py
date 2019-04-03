@@ -13,11 +13,12 @@ from Components.Sources.StaticText import StaticText
 from Plugins.Plugin import PluginDescriptor
 from Tools.Directories import fileExists, pathExists, resolveFilename, SCOPE_PLUGINS, SCOPE_LANGUAGE, SCOPE_MEDIA
 from enigma import getDesktop, quitMainloop
-from os import system
-import MountedDevs
+#from os import popen
+from os import popen
+from MountedDevs import Refresh, Activepart
 
 skin_fhd_main = """
- <screen name="ImageManager" position="center,250" size="1100,500">
+ <screen name="ImageManager" position="center,250" size="1100,500" title="Image Manager">
   <ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/ImageManager/icon/key_ok.png" position="60,338" size="30,30" zPosition="2" alphatest="on"/>
   <widget name="config" position="50,40" size="1000,200" transparent="1" alphatest="blend" itemHeight="30" font="Regular;25" scrollbarMode="showOnDemand" zPosition="2" foregroundColor="00f8ff50" backgroundColorSelected="#004EFF" foregroundColorSelected="#FFCC33"/>
   <widget render="Label" source="key_ok" position="100,335" size="400,30" transparent="1" zPosition="5" valign="center" halign="left" font="Regular;25"/>
@@ -28,7 +29,7 @@ skin_fhd_main = """
   <eLabel position="50,68" size="1000,2" backgroundColor="#004EFF" transparent="0" zPosition="0" alphatest="blend"/>
  </screen>"""
 skin_hd_main = """
- <screen name="ImageManager" position="center,130" size="850,360">
+ <screen name="ImageManager" position="center,130" size="850,360" >
   <ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/ImageManager/icon/key_ok.png" position="60,238" size="30,30" zPosition="2" alphatest="on"/>
   <widget name="config" position="50,40" size="750,200" transparent="1" alphatest="blend" itemHeight="30" font="Regular;21" scrollbarMode="showOnDemand" zPosition="2" foregroundColor="00f8ff50" backgroundColorSelected="#004EFF" foregroundColorSelected="#FFCC33"/>
   <widget render="Label" source="key_ok" position="100,235" size="400,30" transparent="1" zPosition="5" valign="center" halign="left" font="Regular;24"/>
@@ -39,7 +40,7 @@ skin_hd_main = """
   <eLabel position="50,68" size="750,2" backgroundColor="#004EFF" transparent="0" zPosition="0" alphatest="blend"/>
  </screen>"""
 skin_sd_main = """
- <screen name="ImageManager" position="center,130" size="640,360">
+ <screen name="ImageManager" position="center,130" size="640,360" >
   <ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/ImageManager/icon/key_ok.png" position="50,243" size="30,30" zPosition="2" alphatest="on"/>
   <widget name="config" position="40,40" size="560,200" transparent="1" alphatest="blend" itemHeight="30" font="Regular;21" scrollbarMode="showOnDemand" zPosition="2" foregroundColor="00f8ff50" backgroundColorSelected="#004EFF" foregroundColorSelected="#FFCC33"/>
   <widget render="Label" source="key_ok" position="90,240" size="100,30" transparent="1" zPosition="5" valign="center" halign="left" font="Regular;24"/>
@@ -51,19 +52,19 @@ skin_sd_main = """
  </screen>"""
 
 skin_fhd_filelist = """
-  <screen position="center,center" size="800,560" title="Image Installer">
+  <screen position="center,center" size="800,560">
     <widget name="filelist" position="10,10" size="780,540" foregroundColor="#0000FF80" scrollbarMode="showOnDemand"/>
   </screen>"""
 skin_hd_filelist = """
-  <screen position="center,center" size="700,560" title="Image Installer">
+  <screen position="center,center" size="700,560">
     <widget name="filelist" position="10,10" size="680,540" foregroundColor="#0000FF80" scrollbarMode="showOnDemand"/>
   </screen>"""
 skin_sd_filelist = """
-  <screen position="center,center" size="550,400" title="Image Installer">
+  <screen position="center,center" size="550,400">
     <widget name="filelist" position="10,10" size="530,380" foregroundColor="#0000FF80" scrollbarMode="showOnDemand"/>
   </screen>"""
 
-pluginversion = '2.2'
+pluginversion = '2.3' 
 screenWidth = getDesktop(0).size().width()
 config.plugins.ImageManager = ConfigSubsection()
 config.plugins.ImageManager.startmode = ConfigSelection(default='mboot', choices=[('mboot', _('Multiboot')),
@@ -89,7 +90,7 @@ class ImageManager(ConfigListScreen, Screen):
         elif screenWidth and screenWidth == 1280:
             self.skin = skin_hd_main
         else:
-            self.skin = skin_sd_main
+            self.skin = skin_sd_main 
         config.plugins.ImageManager.mode.value = config.plugins.ImageManager.startmode.value
         config.plugins.ImageManager.newName = ConfigText(visible_width=16, fixed_size=True)
         config.plugins.ImageManager.imagetype = ConfigSelection(default=_('no'), choices=[('YES', _('yes')), ('NO', _('no'))])
@@ -98,18 +99,17 @@ class ImageManager(ConfigListScreen, Screen):
         config.plugins.ImageManager.emu = ConfigSelection(default='XXX', choices=[('WMO', 'Wicardd, MgCamd, Oscam'),
          ('WM', 'Wicardd, MgCamd'), ('WO', 'Wicardd, Oscam'),
          ('MO', 'MgCamd, Oscam'), ('O', 'Oscam'),
-         ('W', 'Wicardd'), ('M', 'MgCamd'), ('XXX', _('no'))])
-        MountedDevs.Refresh()
+         ('W', 'Wicardd'), ('M', 'MgCamd'), ('XXX', _('no'))]) 
+        Refresh()
         self.BIN = '/usr/lib/enigma2/python/Plugins/Extensions/ImageManager/bin/'
         self["Title"] = StaticText(_('Image Manager ver %s (c)Vasiliks') % pluginversion)
         self['key_ok'] = Label(_('Execute'))
-        self['activepart'] = Label(_('Active Partition  -  ') + MountedDevs.Activepart())
-        self['myActionMap'] = ActionMap(['OkCancelActions', 'StandbyActions'], {'ok': self.OK,
-         'power': self.reboot_spark,
-         'cancel': self.close}, -2)
+        self['activepart'] = Label(_('Active Partition  -  ') + Activepart())
+        self['myActionMap'] = ActionMap(['OkCancelActions', 'ColorActions', 'StandbyActions'], {'ok': self.Execute,
+         'cancel': self.cancel, 'green': self.Execute,  'red': self.cancel, 'power': self.reboot_spark}, -2)
         self.list = [ ]
         ConfigListScreen.__init__(self, self.list, session=session)
-        self.createConfigList()
+        self.createConfigList()  
 
     def createConfigList(self):
         self.list = [ ]
@@ -155,7 +155,7 @@ class ImageManager(ConfigListScreen, Screen):
         ConfigListScreen.keyRight(self)
         self.newConfig()
 
-    def OK(self):
+    def Execute(self):
         if config.plugins.ImageManager.mode.value == 'mboot':
             devBoot = config.plugins.ImageManager.devsFrom.value[config.plugins.ImageManager.devsFrom.value.find('/dev/'):]
             self.reBootAll(devBoot)
@@ -165,16 +165,14 @@ class ImageManager(ConfigListScreen, Screen):
              config.plugins.ImageManager.archivetype.value, config.plugins.ImageManager.imagetype.value, config.plugins.ImageManager.emu.value)
             self.session.open(Console, _('Backup Creator'), ['%s' % self.makeBackup])
         elif config.plugins.ImageManager.mode.value == 'copy':
-            self.copying()   
-            MountedDevs.Refresh()
-            self.createConfigList()
+            self.copying()  
         elif config.plugins.ImageManager.mode.value == 'install':
             self.session.openWithCallback(self.createConfigList, Install_IM)
         elif config.plugins.ImageManager.mode.value == 'rename':
             renamepart = config.plugins.ImageManager.devsToCopy.value[config.plugins.ImageManager.devsToCopy.value.find('/dev/'):]
-            system("umount -l %s" % (renamepart))
-            system("tune2fs -L %s %s" % (config.plugins.ImageManager.newName.value, renamepart))
-            MountedDevs.Refresh()
+            popen("umount -l %s" % (renamepart))
+            popen("tune2fs -L %s %s" % (config.plugins.ImageManager.newName.value, renamepart))
+            Refresh()
             newname = _('Partition %s\nrenamed in %s') % (renamepart, config.plugins.ImageManager.newName.value)
             self.session.open(MessageBox, newname, type=MessageBox.TYPE_INFO, timeout=5)
             self.createConfigList()
@@ -189,26 +187,25 @@ class ImageManager(ConfigListScreen, Screen):
             plugins.reloadPlugins()
         else:
             self.close()
-
+        
+    def cancel(self):
+        popen('rm /tmp/blkid.im')
+        self.close()
+        
     def copying(self):
         self.makeCopy = self.BIN + 'copying.sh'
         self.makeCopy += ' %s %s %s %s' % (config.plugins.ImageManager.devsFrom.value,
          config.plugins.ImageManager.devsToCopy.value,
          config.plugins.ImageManager.imagetype.value,
          config.plugins.ImageManager.newName.value)
-        self.session.openWithCallback(self.Yes, Console, _('Copying of partition'), ['%s' % self.makeCopy])
+        self.session.openWithCallback(self.end_copy, Console, _('Copying of partition'), ['%s' % self.makeCopy])
 
-    def Yes(self):
-        self.session.openWithCallback(self.rebootCopy, MessageBox, _('Do you want to reboot with the new partition?'), timeout=0, default=False)
-
-    def rebootCopy(self, answer):
-        if answer:
-            devBoot = config.plugins.ImageManager.devsToCopy.value[config.plugins.ImageManager.devsToCopy.value.find('/dev/'):]
-            self.reBootAll(devBoot)
+    def end_copy(self):     
+        Refresh()
+        self.createConfigList()
 
     def reboot_spark(self):
-        devBoot = 'SPARK'
-        self.reBootAll(devBoot)
+        self.reBootAll('SPARK')
 
     def reBootAll(self, devBoot):
         f = open('/proc/stb/info/model', 'r')
@@ -227,7 +224,7 @@ class ImageManager(ConfigListScreen, Screen):
             self.param = ' SPARK'
         elif devBoot != '/dev/mtdblock6':
             self.param = ' USB ' + devBoot
-        system(self.MBoot + self.param)
+        popen(self.MBoot + self.param)
         if fileExists('/tmp/mboot.log'):
             file = open('/tmp/mboot.log', 'r')
             lines = file.readlines()
@@ -255,12 +252,8 @@ class Install_IM(Screen):
          '/proc', '/ram', '/root', '/sbin', '/sys', '/tmp', '/usr', '/var']
         extensions='(?i)^.*\\.(img|tar|gz)'
         self['filelist'] = FileList(ConfigDirectory().getValue(), showMountpoints=True, matchingPattern=extensions, inhibitDirs=hide)
-        self['actions'] = ActionMap(['WizardActions'], {'ok': self.ok,
-         'back': self.back,
-         'up': self.up,
-         'down': self.down,
-         'left': self.left,
-         'right': self.right}, -1)
+        self['actions'] = ActionMap(['WizardActions'], {'ok': self.ok, 'back': self.back, 'up': self.up,
+         'down': self.down, 'left': self.left, 'right': self.right}, -1)
 
     def back(self):
         self.close()
@@ -295,7 +288,7 @@ class Install_IM(Screen):
             self.session.openWithCallback(self.cancel, Console, self.title, ['%s' % self.script])
 
     def cancel(self):
-        MountedDevs.Refresh()
+        Refresh()
         self.close()
 
 def start(session, **kwargs):
@@ -304,7 +297,7 @@ def start(session, **kwargs):
 def spark(session, **kwargs):
     SparkReboot = ImageManager(session)
     SparkReboot.reboot_spark()
-
+                              
 def startSetup(menuid):
     if menuid == 'shutdown':
         return [(_('Reboot to Spark'), spark, 'reboot_to_spark', None)]

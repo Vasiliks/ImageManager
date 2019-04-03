@@ -1,3 +1,7 @@
+from Tools.Directories import fileExists
+from Components.config import config, ConfigSelection
+from os import popen
+
 def getMountedDevs(aaa):
     mountedDevs = []
     if aaa & 1:
@@ -54,18 +58,7 @@ def Activepart():
     return a
 
 def Refresh():
-    from os import system
-    from Tools.Directories import fileExists
-
-    try:
-        system('echo 1 > /proc/sys/vm/drop_caches && blkid > /tmp/blkid.im')
-    except:
-        pass
-
-    if not fileExists('/tmp/blkid.im'):
-        Refresh()
-
-    from Components.config import config, ConfigSelection
+    popen('echo 3 > /proc/sys/vm/drop_caches && blkid -c /dev/null > /tmp/blkid.im')
     config.plugins.ImageManager.devsFrom = ConfigSelection(choices=getMountedDevs(6))
     config.plugins.ImageManager.devsToBackup = ConfigSelection(choices=getMountedDevs(5))
     config.plugins.ImageManager.devsToCopy = ConfigSelection(choices=getMountedDevs(4))
