@@ -78,7 +78,7 @@ model = f.readline().strip()
 f.close()
 #model = "spark"
 BIN = '/usr/lib/enigma2/python/Plugins/Extensions/ImageManager/bin/'
-pluginversion = '2.5.5' 
+pluginversion = '2.6' 
 screenWidth = getDesktop(0).size().width()
 config.plugins.ImageManager = ConfigSubsection()
 config.plugins.ImageManager.startmode = ConfigSelection(default='mboot', choices=[('mboot', _('Multiboot')),
@@ -110,7 +110,7 @@ class ImageManager(ConfigListScreen, Screen):
         config.plugins.ImageManager.newName = ConfigText(visible_width=16, fixed_size=True)
         config.plugins.ImageManager.imagetype = ConfigSelection(default=_('no'), choices=[('YES', _('yes')), ('NO', _('no'))])
         config.plugins.ImageManager.archivetype = ConfigSelection(default='IMG', choices=[('IMG', 'IMG'),
-         ('TAR', 'TAR'), ('TARGZ', 'TAR.GZ')])
+         ('TAR', 'TAR'), ('TARGZ', 'TAR.GZ'), ('TARBZIP', 'TAR.BZIP')])
         config.plugins.ImageManager.emu = ConfigSelection(default='XXX', choices=[('WMO', 'Wicardd, MgCamd, Oscam'),
          ('WM', 'Wicardd, MgCamd'), ('WO', 'Wicardd, Oscam'),
          ('MO', 'MgCamd, Oscam'), ('O', 'Oscam'),
@@ -271,7 +271,7 @@ class Install_IM(Screen):
         self.session = session
         hide = ['/bin', '/boot', '/dev', '/dev.static', '/etc', '/lib',
          '/proc', '/ram', '/root', '/sbin', '/sys', '/tmp', '/usr', '/var']
-        extensions='(?i)^.*\\.(img|tar|gz)'
+        extensions='(?i)^.*\\.(img|tar|gz|bz2)'
         self['filelist'] = FileList(ConfigDirectory().getValue(), showMountpoints=True, matchingPattern=extensions, inhibitDirs=hide)
         self['actions'] = ActionMap(['WizardActions'], {'ok': self.ok, 'back': self.back, 'up': self.up,
          'down': self.down, 'left': self.left, 'right': self.right}, -1)

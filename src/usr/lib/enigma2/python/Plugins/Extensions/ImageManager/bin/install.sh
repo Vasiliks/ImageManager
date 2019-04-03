@@ -1,6 +1,7 @@
 #!/bin/sh
 #Created by Vasiliks 22.03.2015
-#last edited 25.01.2017
+#last edited 23.12.2018
+#version 2.6 added installing bz2
 
 if grep -qs 'config.osd.language=ru_RU' /etc/enigma2/settings ; then
     LANG='ru' ;
@@ -77,7 +78,7 @@ if  [[ `echo $3 | grep ".img$"` ]] ; then # install img to /dev/sdXY
   fi
   fi
 
-# install tar or tar.gz to /dev/sdXY
+# install tar or tar.gz or tar.bz2 to /dev/sdXY
   rm -rf /tmp/copy
   mkdir -p /tmp/copy
   mount $1 /tmp/copy
@@ -94,6 +95,9 @@ if  [[ `echo $3 | grep ".img$"` ]] ; then # install img to /dev/sdXY
   elif [[ `echo $3 | grep ".tar.gz$"` ]] ; then
     tar -xzf $3
     LABEL=`echo $3 | sed "s;.tar.gz;;"`
+  elif [[ `echo $3 | grep ".tar.bz2$"` ]] ; then
+    tar -xjf $3
+    LABEL=`echo $3 | sed "s;.tar.bz2;;"`
   fi
   cd /
   rm /tmp/copy/$3 # удаление образа

@@ -1,6 +1,7 @@
 #!/bin/sh
 #Created by Vasiliks 22.03.2015
-#last edited 25.01.2017
+#last edited 23.12.2018
+#version 2.6 added backup bz2
 LABEL_FROM=$1   ; DEVS_FROM=$2
 LABEL_TO=$3     ; DEVS_TO=$4
 TYPE_ARCHIVE=$5 ; CLEAR_ARCHIVE=$6 ; CLEAR_EMU=$7
@@ -8,19 +9,20 @@ DATE=`date +%Y%m%d_%H%M`
 BACKUPIMAGE="e2jffs2.img"
 BACKUPTAR="$1.tar"
 BACKUPTARGZ="$1.tar.gz"
+BACKUPTARBZIP="$1.tar.bz2"
 
-if grep -qs 'config.osd.language=ru_RU' /etc/enigma2/settings ; then 
-    LANG='ru' ; 
-elif grep -qs 'config.osd.language=uk_UA' /etc/enigma2/settings ; then 
-    LANG='uk' 
+if grep -qs 'config.osd.language=ru_RU' /etc/enigma2/settings ; then
+    LANG='ru' ;
+elif grep -qs 'config.osd.language=uk_UA' /etc/enigma2/settings ; then
+    LANG='uk'
 else
     LANG='en'
 fi
-MESSAGE(){ if [ $LANG = "ru" ]; then 
-             echo "$2" 
+MESSAGE(){ if [ $LANG = "ru" ]; then
+             echo "$2"
            elif [ $LANG = "ru" ]; then
              echo "$3"
-           else 
+           else
              echo "$1"
            fi }
 
@@ -90,7 +92,7 @@ MESSAGE(){ if [ $LANG = "ru" ]; then
 
   if [[ "$TYPE_ARCHIVE" = "IMG" ]]; then
     BACKUP=$BACKUPIMAGE
-    MESSAGE "\nCopying uImage\n" "\nКопируется uImage\n""\nКопіюється uImage\n"
+    MESSAGE "\nCopying uImage\n" "\nКопируется uImage\n" "\nКопіюється uImage\n"
     cp /tmp/root/boot/uImage /tmp/copy/enigma2-$DATE-$LABEL_FROM
     MESSAGE "Please wait, $BACKUP is created\n" "Пожалуйста подождите, создается $BACKUP\n" "Будь ласка зачекайте, створюється $BACKUP\n"
     /sbin/mkfs.jffs2 --root=/tmp/root --faketime --output=/tmp/copy/enigma2-$DATE-$LABEL_FROM/$BACKUP -e 0x20000 -n
@@ -106,6 +108,12 @@ MESSAGE(){ if [ $LANG = "ru" ]; then
     cd /tmp/root
      MESSAGE "Please wait, $BACKUPTARGZ is created\n" "Пожалуйста подождите, создается $BACKUPTARGZ\n" "Будь ласка зачекайте, створюється $BACKUPTARGZ\n"
     tar -czf /tmp/copy/enigma2-$DATE-$LABEL_FROM/$BACKUP * 2>/dev/null
+
+  elif [[ "$TYPE_ARCHIVE" = "TARBZIP" ]]; then
+    BACKUP=$BACKUPTARBZIP
+    cd /tmp/root
+     MESSAGE "Please wait, $BACKUPTARBZIP is created\n" "Пожалуйста подождите, создается $BACKUPTARBZIP\n" "Будь ласка зачекайте, створюється $BACKUPTARBZIP\n"
+    tar -cjf /tmp/copy/enigma2-$DATE-$LABEL_FROM/$BACKUP * 2>/dev/null
   fi
 
     #restore settings
