@@ -58,7 +58,7 @@ def Activepart():
     return a
 
 def Refresh():
-    popen('echo 3 > /proc/sys/vm/drop_caches && blkid -c /dev/null > /tmp/blkid.im')
+    popen('echo 3 > /proc/sys/vm/drop_caches && blkid > /tmp/blkid.im')
     config.plugins.ImageManager.devsFrom = ConfigSelection(choices=getMountedDevs(6))
     config.plugins.ImageManager.devsToBackup = ConfigSelection(choices=getMountedDevs(5))
     config.plugins.ImageManager.devsToCopy = ConfigSelection(choices=getMountedDevs(4))
