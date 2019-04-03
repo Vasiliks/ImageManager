@@ -12,30 +12,35 @@ from Components.Sources.List import List
 from Components.Sources.StaticText import StaticText
 from Plugins.Plugin import PluginDescriptor
 from Tools.Directories import fileExists, pathExists, resolveFilename, SCOPE_PLUGINS, SCOPE_LANGUAGE, SCOPE_MEDIA
-from enigma import getDesktop, quitMainloop
+from Tools.BoundFunction import boundFunction
+from enigma import getDesktop, quitMainloop, eTimer
 from os import popen
 from IM_Console import IM_Console
 from MountedDevs import Refresh, Activepart
 
 skin_fhd_main = """
  <screen name="ImageManager" position="center,250" size="1100,500" title="Image Manager">
-  <ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/ImageManager/icon/key_ok.png" position="60,338" size="30,30" zPosition="2" alphatest="on"/>
+  <ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/ImageManager/icon/key_ok.png" position="60,340" size="40,20" zPosition="2" alphatest="on"/>
+  <ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/ImageManager/icon/key_info.png" position="60,370" size="40,20" zPosition="2" alphatest="on"/>
   <widget name="config" position="50,40" size="1000,200" transparent="1" alphatest="blend" itemHeight="30" font="Regular;25" scrollbarMode="showOnDemand" zPosition="2" foregroundColor="00f8ff50" backgroundColorSelected="#004EFF" foregroundColorSelected="#FFCC33"/>
-  <widget render="Label" source="key_ok" position="100,335" size="400,30" transparent="1" zPosition="5" valign="center" halign="left" font="Regular;25"/>
-  <widget render="Label" source="activepart" position="640,335" size="400,30" transparent="1" zPosition="5" valign="center" halign="right" font="Regular;22"/>
+  <widget render="Label" source="key_ok" position="120,335" size="400,30" transparent="1" zPosition="5" valign="center" halign="left" font="Regular;22"/>
+  <widget render="Label" source="key_help" position="120,365" size="400,30" transparent="1" zPosition="5" valign="center" halign="left" font="Regular;22"/>
+  <widget render="Label" source="activepart" position="640,335" size="400,65" transparent="1" zPosition="5" valign="center" halign="right" font="Regular;22"/>
   <eLabel position="50,330" size="1000,2" backgroundColor="#aaaaaa"/>
-  <eLabel position="50,370" size="1000,2" backgroundColor="#aaaaaa"/>
+  <eLabel position="50,400" size="1000,2" backgroundColor="#aaaaaa"/>
   <eLabel position="50,40" size="1000,2" backgroundColor="#004EFF" transparent="0" zPosition="0" alphatest="blend"/>
   <eLabel position="50,68" size="1000,2" backgroundColor="#004EFF" transparent="0" zPosition="0" alphatest="blend"/>
  </screen>"""
 skin_hd_main = """
  <screen name="ImageManager" position="center,130" size="850,360" >
-  <ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/ImageManager/icon/key_ok.png" position="60,238" size="30,30" zPosition="2" alphatest="on"/>
+  <ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/ImageManager/icon/key_ok.png" position="60,240" size="40,20" zPosition="2" alphatest="on"/>
+  <ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/ImageManager/icon/key_info.png" position="60,270" size="40,20" zPosition="2" alphatest="on"/>
   <widget name="config" position="50,40" size="750,200" transparent="1" alphatest="blend" itemHeight="30" font="Regular;21" scrollbarMode="showOnDemand" zPosition="2" foregroundColor="00f8ff50" backgroundColorSelected="#004EFF" foregroundColorSelected="#FFCC33"/>
-  <widget render="Label" source="key_ok" position="100,235" size="400,30" transparent="1" zPosition="5" valign="center" halign="left" font="Regular;24"/>
-  <widget render="Label" source="activepart" position="390,235" size="400,30" transparent="1" zPosition="5" valign="center" halign="right" font="Regular;18"/>
+  <widget render="Label" source="key_ok" position="120,235" size="400,30" transparent="1" zPosition="5" valign="center" halign="left" font="Regular;18"/>
+  <widget render="Label" source="key_help" position="120,265" size="400,30" transparent="1" zPosition="5" valign="center" halign="left" font="Regular;18"/>
+  <widget render="Label" source="activepart" position="390,235" size="400,60" transparent="1" zPosition="5" valign="center" halign="right" font="Regular;18"/>
   <eLabel position="50,230" size="750,2" backgroundColor="#aaaaaa"/>
-  <eLabel position="50,270" size="750,2" backgroundColor="#aaaaaa"/>
+  <eLabel position="50,300" size="750,2" backgroundColor="#aaaaaa"/>
   <eLabel position="50,40" size="750,2" backgroundColor="#004EFF" transparent="0" zPosition="0" alphatest="blend"/>
   <eLabel position="50,68" size="750,2" backgroundColor="#004EFF" transparent="0" zPosition="0" alphatest="blend"/>
  </screen>"""
@@ -71,8 +76,9 @@ Refresh('check')
 f = open('/proc/stb/info/model', 'r')
 model = f.readline().strip()
 f.close()
+#model = "spark"
 BIN = '/usr/lib/enigma2/python/Plugins/Extensions/ImageManager/bin/'
-pluginversion = '2.5' 
+pluginversion = '2.5.5' 
 screenWidth = getDesktop(0).size().width()
 config.plugins.ImageManager = ConfigSubsection()
 config.plugins.ImageManager.startmode = ConfigSelection(default='mboot', choices=[('mboot', _('Multiboot')),
@@ -110,8 +116,9 @@ class ImageManager(ConfigListScreen, Screen):
          ('MO', 'MgCamd, Oscam'), ('O', 'Oscam'),
          ('W', 'Wicardd'), ('M', 'MgCamd'), ('XXX', _('no'))]) 
         Refresh('job')
-        self["Title"] = StaticText(_('Image Manager ver %s (c)Vasiliks') % pluginversion)
+        self.setTitle(_('Image Manager ver %s (c)Vasiliks') % pluginversion)
         self['key_ok'] = Label(_('Execute'))
+        self['key_help'] = Label(_('Help'))
         self['activepart'] = Label(_('Active Partition  -  ') + Activepart())
         self['myActionMap'] = ActionMap(['OkCancelActions', 'ColorActions', 'StandbyActions', 'EPGSelectActions'], {
          'ok': self.Execute,
@@ -327,15 +334,50 @@ class ImageManagerHelp(Screen):
         with open('/usr/lib/enigma2/python/Plugins/Extensions/ImageManager/imagemanager.hlp') as file_help:
             help_im = file_help.read()
         self["AboutScrollLabel"].setText(help_im)
+
+class Dialog(Screen):
+
+    skin = """
+           <screen  position="50,40" size="120,30" zPosition="-1" backgroundColor="#ff000000" flags="wfNoBorder">
+           </screen>"""
+    
+    def __init__(self, session):
+        Screen.__init__(self, session)
+        self.session = session
+        self.skinName = Dialog.skin
+        self.timer = eTimer()
+        self.timer.callback.append(self.update)
+        self.timer.start(600, True)
+        self['actions'] = ActionMap(['OkCancelActions'], {'ok': self.ok,
+         'cancel': self.exit}, -1)
+
+    def ok(self):
+        self.close()
+
+    def exit(self):
+        self.close()                                    
+
+    def update(self):        
+        if model != 'spark' and model != 'spark7162':
+            self.session.openWithCallback(self.workingFinished, MessageBox, _('Unknown box! :( :( :('), type=MessageBox.TYPE_INFO, timeout=30)
+        elif Refresh('check'):
+            message = _('Not found USB-Flash! :( :( :(\nStart plugin without USB-Flash?')
+            self.session.openWithCallback(self.start2, MessageBox, message, MessageBox.TYPE_YESNO)
+        else:
+            self.session.openWithCallback(self.workingFinished, ImageManager)
+
+    def workingFinished(self, callback = None):
+        self.close()
+
+    def start2(self, answer):
+        if answer:
+            self.session.openWithCallback(self.workingFinished, ImageManager)
+        else:
+            self.close()
         
 def start(session, **kwargs):
-    if model != 'spark' and model != 'spark7162':
-        session.open(MessageBox, _('Unknown box! :( :( :('), type=MessageBox.TYPE_INFO, timeout=30)
-    elif Refresh('check'):
-        session.open(MessageBox, _('Not found HDD or USB-Flash! :( :( :('), type=MessageBox.TYPE_INFO, timeout=30)
-    else:
-        session.open(ImageManager)
-
+    session.open(Dialog)
+        
 def spark(session, **kwargs):
     SparkReboot = ImageManager(session)
     SparkReboot.reboot_spark()
