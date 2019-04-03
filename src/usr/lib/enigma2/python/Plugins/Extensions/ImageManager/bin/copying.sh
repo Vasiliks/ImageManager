@@ -1,12 +1,11 @@
 #!/bin/sh
 #Created by Vasiliks 06.11.2015
-#last edited 11.2015
+#last edited 07.2016
 LABEL_FROM=$1 ; PART_FROM=$2
 LABEL_TO=$3 ; PART_TO=$4
 LANG='en'
 if grep -qs 'config.osd.language=ru_RU' /etc/enigma2/settings ; then LANG='ru' ; fi   
 MESSAGE(){ if [ $LANG = "ru" ]; then echo "$2"; else echo "$1"; fi }
-
 umount -l "$PART_TO"  2>/dev/null
 rm -rf /tmp/from
 mkdir -p /tmp/from
@@ -23,30 +22,33 @@ MESSAGE "Partition $LABEL_FROM mounted\n" "Раздел $LABEL_FROM примон
 MESSAGE "Partition $4 renamed to $6\n" "Раздел $4 переименован в $6\n"
 mount $PART_TO /tmp/copy
 rm -rf /tmp/copy/*
-
 MESSAGE "Partition $PART_TO mounted\n" "Раздел $PART_TO примонтирован\n"
-
-if [[ "$5" = "YES" ]]; then
-  mv /tmp/from/etc/enigma2/settings /tmp
-  MESSAGE "Enigma2 settings deleted" "Файл настроек Enigma2 settings удален"
-fi
-
 MESSAGE "Please wait, there is a copying" "Пожалуйста подождите, идет копирование"
 MESSAGE "of the partition $LABEL_FROM for $PART_TO partition\n" "с раздела $LABEL_FROM на раздел $PART_TO\n"
-
 (cd /tmp/from && tar cf - .) | (cd /tmp/copy && tar xf -)
-
-if [[ "$5" = "YES" ]]; then
-  mv /tmp/settings /tmp/from/etc/enigma2
+if [ ! -f /tmp/copy/boot/uImage ] ; then    
+    MESSAGE "Creating uImage" "Создается uImage"
+    pathTOfind="/usr/bin /usr/sbin /sbin /bin"
+    rezult=`find $pathTOfind -type l -name 'hexdump'`      
+  if [[ "$rezult" = '' ]]; then
+      dd if=/dev/mtd5 of=/tmp/copy/boot/uImage bs=4096 count=768
+  else
+      set `dd if=/dev/mtd5 bs=4 skip=3 count=1 | hexdump -C | head -n1`
+      Z=$((64 + `printf "%d" 0x$2$3$4$5`))
+      dd if=/dev/mtd5 of=/tmp/copy/boot/uImage bs=$Z count=1
+  fi   
 fi
-
+if [[ "$5" = "YES" ]]; then
+  rm -rf /tmp/copy/etc/enigma2/settings
+  MESSAGE "Enigma2 settings deleted\n" "Файл настроек Enigma2 settings удален\n"
+fi
 cd /
 sync
 sleep 2
 umount /tmp/copy
 MESSAGE "Partition $LABEL_FROM unmounted\n" "Раздел $LABEL_FROM отмонтирован\n"
 umount /tmp/from
-MESSAGE "Partition $6 unmounted\n" "Раздел $6 отмонтирован\n"
+MESSAGE "Partition $4 unmounted\n" "Раздел $4 отмонтирован\n"
 rm -rf /tmp/from
 rm -rf /tmp/copy
 exit

@@ -63,7 +63,7 @@ skin_sd_filelist = """
     <widget name="filelist" position="10,10" size="530,380" foregroundColor="#0000FF80" scrollbarMode="showOnDemand"/>
   </screen>"""
 
-pluginversion = '2.1'
+pluginversion = '2.2'
 screenWidth = getDesktop(0).size().width()
 config.plugins.ImageManager = ConfigSubsection()
 config.plugins.ImageManager.startmode = ConfigSelection(default='mboot', choices=[('mboot', _('Multiboot')),
@@ -165,7 +165,9 @@ class ImageManager(ConfigListScreen, Screen):
              config.plugins.ImageManager.archivetype.value, config.plugins.ImageManager.imagetype.value, config.plugins.ImageManager.emu.value)
             self.session.open(Console, _('Backup Creator'), ['%s' % self.makeBackup])
         elif config.plugins.ImageManager.mode.value == 'copy':
-            self.copying()
+            self.copying()   
+            MountedDevs.Refresh()
+            self.createConfigList()
         elif config.plugins.ImageManager.mode.value == 'install':
             self.session.openWithCallback(self.createConfigList, Install_IM)
         elif config.plugins.ImageManager.mode.value == 'rename':
@@ -209,7 +211,6 @@ class ImageManager(ConfigListScreen, Screen):
         self.reBootAll(devBoot)
 
     def reBootAll(self, devBoot):
-        self.session.nav.stopService()
         f = open('/proc/stb/info/model', 'r')
         b = f.readline().strip()
         f.close()
@@ -220,6 +221,7 @@ class ImageManager(ConfigListScreen, Screen):
         else:
             self.session.open(MessageBox, 'Unknown box :(', type=MessageBox.TYPE_INFO, timeout=5)
             return
+        self.session.nav.stopService()
         self.param = ' NAND'
         if devBoot == 'SPARK':
             self.param = ' SPARK'
