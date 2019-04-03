@@ -1,6 +1,5 @@
 from . import _
 from Screens.Screen import Screen
-from Screens.Console import Console
 from Screens.MessageBox import MessageBox
 from Components.ActionMap import ActionMap
 from Components.config import config, configfile, ConfigSubsection, ConfigText, ConfigSelection, getConfigListEntry, ConfigYesNo, ConfigDirectory
@@ -8,12 +7,14 @@ from Components.ConfigList import ConfigList, ConfigListScreen
 from Components.FileList import FileList
 from Components.Label import Label
 from Components.Language import language
+from Components.ScrollLabel import ScrollLabel
 from Components.Sources.List import List
 from Components.Sources.StaticText import StaticText
 from Plugins.Plugin import PluginDescriptor
 from Tools.Directories import fileExists, pathExists, resolveFilename, SCOPE_PLUGINS, SCOPE_LANGUAGE, SCOPE_MEDIA
 from enigma import getDesktop, quitMainloop
 from os import popen
+from IM_Console import IM_Console
 from MountedDevs import Refresh, Activepart
 
 skin_fhd_main = """
@@ -51,23 +52,27 @@ skin_sd_main = """
  </screen>"""
 
 skin_fhd_filelist = """
-  <screen position="center,center" size="800,560">
-    <widget name="filelist" position="10,10" size="780,540" foregroundColor="#0000FF80" scrollbarMode="showOnDemand"/>
+  <screen position="center,center" size="1200,760">
+    <widget name="filelist" position="20,20" size="1160,720" foregroundColor="#0000FF80" scrollbarMode="showOnDemand"/>
+    <widget name="AboutScrollLabel" font="Regular;26" position="20,20" size="1160,720" foregroundColor="#0000FF80" scrollbarMode="showOnDemand"/>
   </screen>"""
 skin_hd_filelist = """
   <screen position="center,center" size="700,560">
     <widget name="filelist" position="10,10" size="680,540" foregroundColor="#0000FF80" scrollbarMode="showOnDemand"/>
+    <widget name="AboutScrollLabel" font="Regular;20" position="10,10" size="680,540" foregroundColor="#0000FF80" scrollbarMode="showOnDemand"/>
   </screen>"""
 skin_sd_filelist = """
   <screen position="center,center" size="550,400">
     <widget name="filelist" position="10,10" size="530,380" foregroundColor="#0000FF80" scrollbarMode="showOnDemand"/>
+    <widget name="AboutScrollLabel" font="Regular;20" position="10,10" size="530,380" foregroundColor="#0000FF80" scrollbarMode="showOnDemand"/>
   </screen>""" 
-  
+
+Refresh('check')    
 f = open('/proc/stb/info/model', 'r')
 model = f.readline().strip()
 f.close()
 BIN = '/usr/lib/enigma2/python/Plugins/Extensions/ImageManager/bin/'
-pluginversion = '2.4' 
+pluginversion = '2.5' 
 screenWidth = getDesktop(0).size().width()
 config.plugins.ImageManager = ConfigSubsection()
 config.plugins.ImageManager.startmode = ConfigSelection(default='mboot', choices=[('mboot', _('Multiboot')),
@@ -84,6 +89,7 @@ config.plugins.ImageManager.mode = ConfigSelection(choices=[('mboot', _('Multibo
  ('rename', _('Rename')),
  ('install', _('Installing')),
  ('cfgmenu', _('Configuration'))])
+config.plugins.ImageManager.installmode = ConfigSelection(default='repack', choices=[('repack', _('repacking')), ('mounting', _('mounting'))])
 
 class ImageManager(ConfigListScreen, Screen):
     def __init__(self, session):
@@ -107,8 +113,14 @@ class ImageManager(ConfigListScreen, Screen):
         self["Title"] = StaticText(_('Image Manager ver %s (c)Vasiliks') % pluginversion)
         self['key_ok'] = Label(_('Execute'))
         self['activepart'] = Label(_('Active Partition  -  ') + Activepart())
-        self['myActionMap'] = ActionMap(['OkCancelActions', 'ColorActions', 'StandbyActions'], {'ok': self.Execute,
-         'cancel': self.cancel, 'green': self.Execute,  'red': self.cancel, 'power': self.reboot_spark}, -2)
+        self['myActionMap'] = ActionMap(['OkCancelActions', 'ColorActions', 'StandbyActions', 'EPGSelectActions'], {
+         'ok': self.Execute,
+         'cancel': self.cancel,
+         'info': self.keyHelp, 
+         'green': self.Execute,  
+         'red': self.cancel, 
+         'power': self.reboot_spark
+        }, -2)
         self.list = [ ]
         ConfigListScreen.__init__(self, self.list, session=session)
         self.createConfigList()  
@@ -130,13 +142,13 @@ class ImageManager(ConfigListScreen, Screen):
              getConfigListEntry(_('Show Reboot to Spark in ShutdownMenu?'), config.plugins.ImageManager.sparkrebootshutdown)))
         if config.plugins.ImageManager.mode.value == 'copy':
             config.plugins.ImageManager.newName.value = 'NewName_For_Copy'
-            self.list.extend((
-             getConfigListEntry(_('Select the source partition:'), config.plugins.ImageManager.devsFrom),
+            self.list.extend((getConfigListEntry(_('Select the source partition:'), config.plugins.ImageManager.devsFrom),
              getConfigListEntry(_('Select the target partition:'), config.plugins.ImageManager.devsToCopy),
              getConfigListEntry(_('Input name:'), config.plugins.ImageManager.newName),
              getConfigListEntry(_('Delete the configuration file Enigma?'), config.plugins.ImageManager.imagetype)))
         if config.plugins.ImageManager.mode.value == 'install':
             self.list.append(getConfigListEntry(_('Select the target partition:'), config.plugins.ImageManager.devsToCopy))
+            self.list.append(getConfigListEntry(_('Select install mode:'), config.plugins.ImageManager.installmode))
         if config.plugins.ImageManager.mode.value == 'mboot':
             self.list.append(getConfigListEntry(_('Select the source partition:'), config.plugins.ImageManager.devsFrom))
         if config.plugins.ImageManager.mode.value == 'rename':
@@ -156,6 +168,9 @@ class ImageManager(ConfigListScreen, Screen):
     def keyRight(self):
         ConfigListScreen.keyRight(self)
         self.newConfig()
+        
+    def keyHelp(self):
+        self.session.open(ImageManagerHelp)
 
     def Execute(self):
         if config.plugins.ImageManager.mode.value == 'mboot':
@@ -165,7 +180,7 @@ class ImageManager(ConfigListScreen, Screen):
             self.makeBackup = BIN + 'backup.sh'
             self.makeBackup += ' %s %s %s %s %s' % (config.plugins.ImageManager.devsFrom.value, config.plugins.ImageManager.devsToBackup.value,
              config.plugins.ImageManager.archivetype.value, config.plugins.ImageManager.imagetype.value, config.plugins.ImageManager.emu.value)
-            self.session.open(Console, _('Backup Creator'), ['%s' % self.makeBackup])
+            self.session.open(IM_Console, _('Backup Creator'), ['%s' % self.makeBackup])
         elif config.plugins.ImageManager.mode.value == 'copy':
             self.copying()  
         elif config.plugins.ImageManager.mode.value == 'install':
@@ -200,7 +215,7 @@ class ImageManager(ConfigListScreen, Screen):
          config.plugins.ImageManager.devsToCopy.value,
          config.plugins.ImageManager.imagetype.value,
          config.plugins.ImageManager.newName.value)
-        self.session.openWithCallback(self.end_copy, Console, _('Copying of partition'), ['%s' % self.makeCopy])
+        self.session.openWithCallback(self.end_copy, IM_Console, _('Copying of partition'), ['%s' % self.makeCopy])
 
     def end_copy(self):     
         Refresh('job')
@@ -278,18 +293,41 @@ class Install_IM(Screen):
             namepart = self["filelist"].getCurrentDirectory()[:self["filelist"].getCurrentDirectory().rfind('/')]
             namepart = namepart[namepart.rfind('/') + 1:] 
             self.script = BIN + 'install.sh'
-            self.script += ' %s %s %s %s' % (target, self['filelist'].getCurrentDirectory(), self['filelist'].getFilename(), namepart)
+            self.script += ' %s %s %s %s %s' % (target, self['filelist'].getCurrentDirectory(), self['filelist'].getFilename(), namepart, config.plugins.ImageManager.installmode.value)
             message = _('Do you want to install with this image?\n%s\nto partition %s') % (self['filelist'].getCurrentDirectory() + self['filelist'].getFilename(), target)
             self.session.openWithCallback(self.Execution, MessageBox, message, timeout=0, default=True)
 
     def Execution(self, answer):
         if answer:
-            self.session.openWithCallback(self.cancel, Console, self.title, ['%s' % self.script])
+            self.session.openWithCallback(self.cancel, IM_Console, self.title, ['%s' % self.script])
 
     def cancel(self):
         Refresh('job')
         self.close()
 
+class ImageManagerHelp(Screen):
+    def __init__(self, session):
+        if screenWidth and screenWidth == 1920:
+            self.skin = skin_fhd_filelist
+        elif screenWidth and screenWidth == 1280:
+            self.skin = skin_hd_filelist
+        else:
+            self.skin = skin_sd_filelist
+
+        Screen.__init__(self, session)
+        self["Title"].setText(_("Short Help"))
+        self["AboutScrollLabel"] = ScrollLabel(_(""))
+        self["actions"] = ActionMap(["SetupActions", "DirectionActions"],
+            {
+                "cancel": self.close,
+                "ok": self.close,
+                "up": self["AboutScrollLabel"].pageUp,
+                "down": self["AboutScrollLabel"].pageDown
+            })
+        with open('/usr/lib/enigma2/python/Plugins/Extensions/ImageManager/imagemanager.hlp') as file_help:
+            help_im = file_help.read()
+        self["AboutScrollLabel"].setText(help_im)
+        
 def start(session, **kwargs):
     if model != 'spark' and model != 'spark7162':
         session.open(MessageBox, _('Unknown box! :( :( :('), type=MessageBox.TYPE_INFO, timeout=30)
@@ -302,7 +340,7 @@ def spark(session, **kwargs):
     SparkReboot = ImageManager(session)
     SparkReboot.reboot_spark()
                               
-def startSetup(menuid):
+def menu(menuid):
     if menuid == 'shutdown':
         return [(_('Reboot to Spark'), spark, 'reboot_to_spark', None)]
     else:
@@ -313,7 +351,7 @@ def Plugins(**kwargs):
     if config.plugins.ImageManager.showext.value:
         list.append(PluginDescriptor(name=_('Image Manager'), description=_('manage of your image Enigma'), where=[PluginDescriptor.WHERE_EXTENSIONSMENU], fnc=start))
     if config.plugins.ImageManager.sparkrebootshutdown.value:
-        list.append(PluginDescriptor(where=[PluginDescriptor.WHERE_MENU], fnc=startSetup))
+        list.append(PluginDescriptor(where=[PluginDescriptor.WHERE_MENU], fnc=menu))
     if config.plugins.ImageManager.sparkrebootext.value:
         list.append(PluginDescriptor(name=_('Reboot to Spark'), where=PluginDescriptor.WHERE_EXTENSIONSMENU, fnc=spark))
     return list

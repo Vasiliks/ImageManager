@@ -73,9 +73,9 @@ def Refresh(mode):
         blkid_tmp = f_in.readlines()
         f_in.close()
         for sd in 'a', 'b':
-            for i in xrange(1, 15):
+            for i in xrange(0, 15):
                 for j in blkid_tmp:
-                    if j.__contains__('sd%s%d:' % (sd, i)):
+                    if j.__contains__('sd%s%d:' % (sd, i+1)):
                         blkid_tmp.remove(j)
                         p = j[j.find('UUID="'):]
                         j = j.replace(p[:p.find(' ')+1], '')

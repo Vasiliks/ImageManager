@@ -1,0 +1,135 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: ImageManager\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-11-07 01:13+0100\n"
+"PO-Revision-Date: 2017-05-06 15:19+0100\n"
+"Last-Translator: Vasiliks <vasiliks@narod.ru>\n"
+"Language-Team: Vasiliks <vasiliks@narod.ru>\n"
+"MIME-Version: 1.0\n"
+"Language: uk_UA\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Generator: Poedit 1.7.4\n"
+
+msgid "Image Manager"
+msgstr "Менеджер іміджів"
+
+msgid "Backup Creator"
+msgstr "Створення бэкапу"
+
+msgid "Copying of partition"
+msgstr "Копіювання розділу"
+
+msgid "Image Installer"
+msgstr "Установник іміджів"
+
+msgid "Select the source partition:"
+msgstr "Виберіть розділ-джерело:"
+
+msgid "Select the target partition:"
+msgstr "Виберіть цільовий розділ:"
+
+msgid "Delete the configuration file Enigma?"
+msgstr "Видалити файл налаштувань Enigma?"
+
+msgid "Remove config settings EMU?"
+msgstr "Видалити налаштування конфігів EMU?"
+
+msgid "Select the type of archive:"
+msgstr "Виберіть тип створюваного архіву:"
+
+msgid "manage of your image Enigma"
+msgstr "управління вашим іміджем Enigma"
+
+msgid "Do you want to reboot with the new partition?"
+msgstr "Ви бажаєте перезавантажитися з нового розділу?"
+
+msgid ""
+"Do you want to install with this image?\n"
+"%s\n"
+"to partition %s"
+msgstr ""
+"Ви бажаєте встановити даний імідж?\n"
+"%s\n"
+"на розділ %s"
+
+msgid "Active Partition  -  "
+msgstr "Активний розділ  -  "
+
+msgid "Image Manager ver %s (c)Vasiliks"
+msgstr "Менеджер іміджів вер %s (c)Vasiliks"
+
+msgid "Select the image"
+msgstr "Виберіть імідж"
+
+msgid "Reboot to Spark"
+msgstr "Перезавантаження в Spark"
+
+msgid "Show ImageManager in ExtensionsMenu?"
+msgstr "Відображати Менеджер іміджів в меню розширень?"
+
+msgid "Show Reboot to Spark in ExtensionsMenu?"
+msgstr "Відображати Перезавантаження в Spark в меню розширень?"
+
+msgid "Show Reboot to Spark in ShutdownMenu?"
+msgstr "Відображати Перезавантаження в Spark в меню вимикання?"
+
+msgid "Configuration is saved"
+msgstr "Конфігурація збережена"
+
+msgid "Execute"
+msgstr "Виконати"
+
+msgid "Configuration"
+msgstr "Конфігурація"
+
+msgid "Backup"
+msgstr "Бекап"
+
+msgid "Installing"
+msgstr "Встановлення"
+
+msgid "Copying"
+msgstr "Копіювання"
+
+msgid "Multiboot"
+msgstr "Мультизавантаження"
+
+msgid "Select Mode:"
+msgstr "Виберіть режим:"
+
+msgid "Mode at startup:"
+msgstr "Режим при запуску:"
+
+msgid "Input name:"
+msgstr "Введіть ім'я:"
+
+msgid "Select the partition to rename:"
+msgstr "Виберіть розділ для перейменування:"
+
+msgid ""
+"Partition %s\n"
+"renamed in %s"
+msgstr ""
+"Розділ %s\n"
+"перейменований в %s"
+
+msgid "Unknown box! :( :( :("
+msgstr "Незнайомий пристрій! :( :( :("
+
+msgid "Not found HDD or USB-Flash! :( :( :("
+msgstr "Не знайдено HDD або USB-носій! :( :( :("
+
+msgid "repacking"
+msgstr "распаковка"
+
+msgid "mounting"
+msgstr "монтирование"
+
+msgid "Select install mode:"
+msgstr "Виберіть режим встановлення:"
+
+msgid "Short Help"
+msgstr "Коротка довідка"
