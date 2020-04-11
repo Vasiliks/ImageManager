@@ -8,7 +8,7 @@ setup(name = 'enigma2-plugin-extensions-imagemanager',
 		author_email='vasiliks@narod.ru',
 		package_dir = {'Extensions.ImageManager': 'src'},
 		packages=['Extensions.ImageManager'],
-		package_data={'icon/*.png','Extensions.ImageManager': ['*.png', 'icons/*.png', 'bin/*']},
+		package_data={'Extensions.ImageManager': ['*.png', 'icons/*.png', 'bin/*']},
 		description = 'Create and manage your image enigma2',
 		cmdclass = setup_translate.cmdclass,
 	)
