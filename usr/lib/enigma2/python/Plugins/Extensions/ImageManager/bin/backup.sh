@@ -95,7 +95,7 @@ MESSAGE(){ if [ $LANG = "ru" ]; then
     MESSAGE "\nCopying uImage\n" "\nКопируется uImage\n" "\nКопіюється uImage\n"
     cp /tmp/root/boot/uImage /tmp/copy/enigma2-$DATE-$LABEL_FROM
     MESSAGE "Please wait, $BACKUP is created\n" "Пожалуйста подождите, создается $BACKUP\n" "Будь ласка зачекайте, створюється $BACKUP\n"
-    /sbin/mkfs.jffs2 --root=/tmp/root --faketime --output=/tmp/copy/enigma2-$DATE-$LABEL_FROM/$BACKUP -e 0x20000 -n
+  mkfs.jffs2 --root=/tmp/root --faketime --output=/tmp/copy/enigma2-$DATE-$LABEL_FROM/$BACKUP -e 0x20000 -n
 
   elif [[ "$TYPE_ARCHIVE" = "TAR" ]]; then
     BACKUP=$BACKUPTAR

@@ -78,7 +78,7 @@ model = f.readline().strip()
 f.close()
 #model = "spark"
 BIN = '/usr/lib/enigma2/python/Plugins/Extensions/ImageManager/bin/'
-pluginversion = '2.6' 
+pluginversion = '2.7' 
 screenWidth = getDesktop(0).size().width()
 config.plugins.ImageManager = ConfigSubsection()
 config.plugins.ImageManager.startmode = ConfigSelection(default='mboot', choices=[('mboot', _('Multiboot')),
