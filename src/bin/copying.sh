@@ -30,7 +30,7 @@ else
   mount $PART_FROM /tmp/from
 fi
 MESSAGE "Partition $LABEL_FROM mounted\n" "Раздел $LABEL_FROM примонтирован\n" "Розділ $LABEL_FROM примонтовано\n"
-/sbin/tune2fs -L $6 $4 2>&1 | tee >/dev/null
+tune2fs -L $6 $4 2>&1 | tee >/dev/null
 MESSAGE "Partition PART_TO renamed to $6\n" "Раздел PART_TO переименован в $6\n" "Розділ PART_TO перейменовано в $6\n"
 mount $PART_TO /tmp/copy
 MESSAGE "Please wait, is cleaning partition $PART_TO\n" "Подождите, идет очистка раздела $PART_TO\n " "Зачекайте, йде очищення розділу $PART_TO\n "
