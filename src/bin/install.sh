@@ -55,7 +55,7 @@ if  [[ `echo $3 | grep ".img$"` ]] ; then # install img to /dev/sdXY
     rm -rf /tmp/copy
     rm -rf /tmp/root
     rm -rf /media/jffs2
-    tune2fs -L $4 $1 2>&1 | tee >/dev/null
+    /sbin/tune2fs -L $4 $1 2>&1 | tee >/dev/null
     MESSAGE "Partition $1 renamed to $4\n" "Раздел $1 переименован в $4\n" "Розділ $1 перейменований в $4\n"
     MESSAGE "Image  $2e2jffs2.img\ninstalled on partition $1!\n" "Имидж $2e2jffs2.img\nустанавлен на раздел $1!\n" "Імідж $2e2jffs2.img\nвстановлено на розділ $1!\n"
     exit
@@ -67,11 +67,11 @@ if  [[ `echo $3 | grep ".img$"` ]] ; then # install img to /dev/sdXY
 #    MESSAGE "Please wait, is cleaning partition $1\n" "Подождите, идет очистка раздела $1\n" "Зачекайте, йде очищення розділу $1\n"
 #    rm -rf /tmp/copy/*
     MESSAGE "Unpacking  $3\n" "Идет распаковка  $3\n" "Йде розпаковка  $3\n"
-    unjffs2 $2$3 /tmp/copy 2>&1 | tee >/dev/null
+    /sbin/unjffs2 $2$3 /tmp/copy 2>&1 | tee >/dev/null
     [[ ! -f /tmp/copy/boot/uImage ]] && cp -rf $2uImage /tmp/copy/boot
     umount -l /tmp/copy  2>/dev/null
     rm -rf /tmp/copy
-    tune2fs -L $4 $1 2>&1 | tee >/dev/null
+    /sbin/tune2fs -L $4 $1 2>&1 | tee >/dev/null
     MESSAGE "Partition $1 renamed to $4\n" "Раздел $1 переименован в $4\n" "Розділ $1 перейменований в $4\n"
     MESSAGE "Image  $2e2jffs2.img\ninstalled on partition $1!\n" "Имидж $2e2jffs2.img\nустанавлен на раздел $1!\n" "Імідж $2e2jffs2.img\nвстановлено на розділ $1!\n"
     exit
@@ -103,7 +103,7 @@ if  [[ `echo $3 | grep ".img$"` ]] ; then # install img to /dev/sdXY
   rm /tmp/copy/$3 # удаление образа
   umount -l $1  2>/dev/null
   # Rename partition
-  tune2fs -L $LABEL $1 2>&1 | tee >/dev/null
+  /sbin/tune2fs -L $LABEL $1 2>&1 | tee >/dev/null
   MESSAGE "Partition $1 renamed to $LABEL\n" "Раздел $1 переименован в $LABEL\n" "Розділ $1 перейменований в $4\n"
   rm -rf /tmp/copy
 

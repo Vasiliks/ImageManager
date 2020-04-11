@@ -78,7 +78,7 @@ model = f.readline().strip()
 f.close()
 #model = "spark"
 BIN = '/usr/lib/enigma2/python/Plugins/Extensions/ImageManager/bin/'
-pluginversion = '2.7' 
+pluginversion = '2.6' 
 screenWidth = getDesktop(0).size().width()
 config.plugins.ImageManager = ConfigSubsection()
 config.plugins.ImageManager.startmode = ConfigSelection(default='mboot', choices=[('mboot', _('Multiboot')),
@@ -110,7 +110,7 @@ class ImageManager(ConfigListScreen, Screen):
         config.plugins.ImageManager.newName = ConfigText(visible_width=16, fixed_size=True)
         config.plugins.ImageManager.imagetype = ConfigSelection(default=_('no'), choices=[('YES', _('yes')), ('NO', _('no'))])
         config.plugins.ImageManager.archivetype = ConfigSelection(default='IMG', choices=[('IMG', 'IMG'),
-         ('TAR', 'TAR'), ('TARGZ', 'TAR.GZ'), ('TARBZIP', 'TAR.BZIP')])
+         ('TAR', 'TAR'), ('TARGZ', 'TAR.GZ'), ('TARBZIP2', 'TAR.BZIP')])
         config.plugins.ImageManager.emu = ConfigSelection(default='XXX', choices=[('WMO', 'Wicardd, MgCamd, Oscam'),
          ('WM', 'Wicardd, MgCamd'), ('WO', 'Wicardd, Oscam'),
          ('MO', 'MgCamd, Oscam'), ('O', 'Oscam'),
